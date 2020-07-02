@@ -1,21 +1,21 @@
 package main
 
 import (
-	"net/http"
-
-	echoPrometheus "github.com/globocom/echo-prometheus"
-	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/webx-top/echo"
+	echoPrometheus "github.com/webx-top/echo-prometheus"
+	"github.com/webx-top/echo/engine/standard"
+	"github.com/webx-top/echo/middleware"
 )
 
 func main() {
 	e := echo.New()
-
+	e.Use(middleware.Log())
 	e.Use(echoPrometheus.MetricsMiddleware())
-	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
+	e.Get("/metrics", echo.WrapHandler(promhttp.Handler()))
 
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
+	e.Get("/", func(c echo.Context) error {
+		return c.String("Hello, World!")
 	})
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger().Fatal(e.Run(standard.New(":1323")))
 }

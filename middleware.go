@@ -1,19 +1,19 @@
 package echoprometheus
 
 import (
-	"strconv"
 	"reflect"
+	"strconv"
 
-	echo "github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/webx-top/echo"
 )
 
 // Config responsible to configure middleware
 type Config struct {
-	Namespace string
-	Buckets   []float64
-	Subsystem string
+	Namespace           string
+	Buckets             []float64
+	Subsystem           string
 	NormalizeHTTPStatus bool
 }
 
@@ -62,7 +62,7 @@ func normalizeHTTPStatus(status int) string {
 	return "5xx"
 }
 
-func isNotFoundHandler(handler echo.HandlerFunc) bool {
+func isNotFoundHandler(handler echo.Handler) bool {
 	return reflect.ValueOf(handler).Pointer() == reflect.ValueOf(echo.NotFoundHandler).Pointer()
 }
 
@@ -72,12 +72,12 @@ func NewConfig() Config {
 }
 
 // MetricsMiddleware returns an echo middleware with default config for instrumentation.
-func MetricsMiddleware() echo.MiddlewareFunc {
+func MetricsMiddleware() echo.MiddlewareFuncd {
 	return MetricsMiddlewareWithConfig(DefaultConfig)
 }
 
 // MetricsMiddlewareWithConfig returns an echo middleware for instrumentation.
-func MetricsMiddlewareWithConfig(config Config) echo.MiddlewareFunc {
+func MetricsMiddlewareWithConfig(config Config) echo.MiddlewareFuncd {
 
 	httpRequests := promauto.NewCounterVec(prometheus.CounterOpts{
 		Namespace: config.Namespace,
@@ -94,32 +94,37 @@ func MetricsMiddlewareWithConfig(config Config) echo.MiddlewareFunc {
 		Buckets:   config.Buckets,
 	}, []string{"method", "handler"})
 
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(next echo.Handler) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			req := c.Request()
 			path := c.Path()
 
 			// to avoid attack high cardinality of 404
-			if isNotFoundHandler(c.Handler()) {
+			if isNotFoundHandler(next) {
 				path = notFoundPath
 			}
 
-			timer := prometheus.NewTimer(httpDuration.WithLabelValues(req.Method, path))
-			err := next(c)
+			if len(path) == 0 {
+				path = req.URL().Path()
+			}
+			//c.Logger().Debug(path)
+
+			timer := prometheus.NewTimer(httpDuration.WithLabelValues(req.Method(), path))
+			err := next.Handle(c)
 			timer.ObserveDuration()
 
 			if err != nil {
 				c.Error(err)
 			}
 
-			status := ""
+			var status string
 			if config.NormalizeHTTPStatus {
-				status = normalizeHTTPStatus(c.Response().Status)
+				status = normalizeHTTPStatus(c.Response().Status())
 			} else {
-				status = strconv.Itoa(c.Response().Status)
+				status = strconv.Itoa(c.Response().Status())
 			}
 
-			httpRequests.WithLabelValues(status, req.Method, path).Inc()
+			httpRequests.WithLabelValues(status, req.Method(), path).Inc()
 
 			return err
 		}
