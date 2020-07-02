@@ -1,5 +1,5 @@
 # Echo Prometheus
-Middleware for echo v4 to instrument all handlers as metrics
+Middleware for echo to instrument all handlers as metrics
 
 
 ## Example of usage
