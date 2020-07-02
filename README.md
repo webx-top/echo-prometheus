@@ -99,3 +99,42 @@ echo_http_requests_total{handler="/",method="GET",status="2xx"} 7
 
 We built a grafana dashboard for these metrics, lookup at [https://grafana.com/grafana/dashboards/10913](https://grafana.com/grafana/dashboards/10913).
 
+### 使用方式
+
+#### 第一步：启动 prometheus
+
+```bash
+cd ./prometheus
+prometheus
+```
+
+#### 第二步：启动 grafana
+
+```bash
+grafana-server --config=/usr/local/etc/grafana/grafana.ini --homepath /usr/local/share/grafana cfg:default.paths.logs=/usr/local/var/log/grafana cfg:default.paths.data=/usr/local/var/lib/grafana cfg:default.paths.plugins=/usr/local/var/lib/grafana/plugins
+```
+
+### 第三步：配置 grafana
+
+#### 一、配置数据源
+
+点击路径：`Configuration` -> `Data Sources` -> `Add data source` -> 选择“`Prometheus`”：
+
+1. 配置：Settings
+
+    **HTTP**:
+
+    `URL` -> 填写：`http://localhost:9090`  
+    `Access` -> 选择：`Server(default)`  
+    点击“`Save & Test`“按钮
+
+2. 安装：Dashboards
+
+   点击“`Dashboards`”选项卡，安装所有项目
+
+#### 二、导入模版
+
+点击路径：`Create` -> `Import` -> 点击“`Upload .json file`”按钮，选择本目录下grafana文件夹中的json文件进行上传，
+并在数据源中选择刚刚配置的数据源，然后点击“`Import`”按钮进行导入。
+
+\- END -
