@@ -50,7 +50,7 @@
       }
     ]
   },
-  "description": "Dashboard for applications that use https://github.com/globocom/echo-prometheus",
+  "description": "Dashboard for applications that use https://github.com/admpub/echo-prometheus",
   "editable": true,
   "gnetId": 10913,
   "graphTooltip": 1,
