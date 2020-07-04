@@ -9,9 +9,8 @@ Middleware for echo to instrument all handlers as metrics
 package main
 
 import (
-	"net/http"
-
 	"github.com/webx-top/echo"
+	"github.com/webx-top/echo/engine/standard"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	echoPrometheus "github.com/webx-top/echo-prometheus"
 )
@@ -23,7 +22,7 @@ func main() {
 	e.Get("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	e.Get("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
+		return c.String("Hello, World!")
 	})
 	e.Logger().Fatal(e.Run(standard.New(":1323")))
 }
@@ -34,9 +33,8 @@ func main() {
 package main
 
 import (
-	"net/http"
-
 	"github.com/webx-top/echo"
+	"github.com/webx-top/echo/engine/standard"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	echoPrometheus "github.com/webx-top/echo-prometheus"
 )
@@ -62,7 +60,7 @@ func main() {
 	e.Get("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	e.Get("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
+		return c.String("Hello, World!")
 	})
 	e.Logger().Fatal(e.Run(standard.New(":1323")))
 }
@@ -111,24 +109,24 @@ We built a grafana dashboard for these metrics, lookup at
 
 在线位置：[https://grafana.com/grafana/dashboards/6671](https://grafana.com/grafana/dashboards/6671)
 
-### 使用方式
+## 使用方式
 
-#### 第一步：启动 prometheus
+### 第一步：启动 prometheus
 
 ```bash
 cd ./prometheus
 prometheus
 ```
 
-#### 第二步：启动 grafana
+### 第二步：启动 grafana
 
 ```bash
 grafana-server --config=/usr/local/etc/grafana/grafana.ini --homepath /usr/local/share/grafana cfg:default.paths.logs=/usr/local/var/log/grafana cfg:default.paths.data=/usr/local/var/lib/grafana cfg:default.paths.plugins=/usr/local/var/lib/grafana/plugins
 ```
 
-#### 第三步：配置 grafana
+### 第三步：配置 grafana
 
-##### 一、配置数据源
+#### 一、配置数据源
 
 点击路径：`Configuration` -> `Data Sources` -> `Add data source` -> 选择“`Prometheus`”：
 
@@ -144,7 +142,7 @@ grafana-server --config=/usr/local/etc/grafana/grafana.ini --homepath /usr/local
 
    点击“`Dashboards`”选项卡，安装所有项目
 
-##### 二、导入模版
+#### 二、导入模版
 
 点击路径：`Create` -> `Import` -> 点击“`Upload .json file`”按钮
 
