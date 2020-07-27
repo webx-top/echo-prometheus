@@ -11,6 +11,7 @@ import (
 
 // Config responsible to configure middleware
 type Config struct {
+	Skipper             echo.Skipper
 	Namespace           string
 	Buckets             []float64
 	Subsystem           string
@@ -25,6 +26,9 @@ const (
 
 // DefaultConfig has the default instrumentation config
 var DefaultConfig = Config{
+	Skipper: func(c echo.Context) bool {
+		return c.Request().URL().Path() == `/metrics`
+	},
 	Namespace: "echo",
 	Subsystem: "http",
 	Buckets: []float64{
@@ -94,8 +98,16 @@ func MetricsMiddlewareWithConfig(config Config) echo.MiddlewareFuncd {
 		Buckets:   config.Buckets,
 	}, []string{"method", "handler"})
 
+	skipper := config.Skipper
+	if skipper == nil {
+		skipper = echo.DefaultSkipper
+	}
+
 	return func(next echo.Handler) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			if skipper(c) {
+				return next.Handle(c)
+			}
 			req := c.Request()
 			path := c.Path()
 
