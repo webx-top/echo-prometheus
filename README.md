@@ -113,12 +113,40 @@ We built a grafana dashboard for these metrics, lookup at
 
 ### 使用方式
 
-#### 第一步：启动 prometheus
+#### 第一步：下载和启动 prometheus
+
+1. 下载 prometheus
+
+下载地址：[https://prometheus.io/download/](https://prometheus.io/download/)
+
+下载命令举例：
 
 ```bash
-cd ./prometheus
+wget https://github.com/prometheus/prometheus/releases/download/v2.20.0/prometheus-2.20.0.linux-amd64.tar.gz
+```
+
+解压：
+
+```bash
+tar -zxvf prometheus-2.20.0.linux-amd64.tar.gz
+```
+
+2. 启动 prometheus
+
+如果可执行文件prometheus没有加入到环境变量PATH中，则执行：
+
+```bash
+cd prometheus-2.20.0.linux-amd64
+./prometheus --config.file=$GOPATH/src/github.com/webx-top/echo-prometheus/prometheus/prometheus.yml
+```
+
+如果可执行文件prometheus已经加入到环境变量PATH中，则执行：
+
+```bash
+cd $GOPATH/src/github.com/webx-top/echo-prometheus/prometheus
 prometheus
 ```
+
 
 #### 第二步：启动 grafana
 
