@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/webx-top/echo"
 )
 
@@ -82,21 +81,24 @@ func MetricsMiddleware() echo.MiddlewareFuncd {
 
 // MetricsMiddlewareWithConfig returns an echo middleware for instrumentation.
 func MetricsMiddlewareWithConfig(config Config) echo.MiddlewareFuncd {
-
-	httpRequests := promauto.NewCounterVec(prometheus.CounterOpts{
+	httpRequests := prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: config.Namespace,
 		Subsystem: config.Subsystem,
 		Name:      httpRequestsCount,
 		Help:      "Number of HTTP operations",
 	}, []string{"status", "method", "handler"})
+	prometheus.DefaultRegisterer.Unregister(httpRequests)
+	prometheus.DefaultRegisterer.MustRegister(httpRequests)
 
-	httpDuration := promauto.NewHistogramVec(prometheus.HistogramOpts{
+	httpDuration := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: config.Namespace,
 		Subsystem: config.Subsystem,
 		Name:      httpRequestsDuration,
 		Help:      "Spend time by processing a route",
 		Buckets:   config.Buckets,
 	}, []string{"method", "handler"})
+	prometheus.DefaultRegisterer.Unregister(httpDuration)
+	prometheus.DefaultRegisterer.MustRegister(httpDuration)
 
 	skipper := config.Skipper
 	if skipper == nil {
