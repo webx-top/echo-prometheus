@@ -12,22 +12,20 @@ require (
 	github.com/admpub/log v0.3.1 // indirect
 	github.com/admpub/realip v0.0.0-20210421084339-374cf5df122d // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
-	github.com/go-kit/kit v0.10.0 // indirect
 	github.com/goccy/go-json v0.7.4 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/prometheus/client_golang v1.11.0
-	github.com/prometheus/common v0.29.0 // indirect
-	github.com/prometheus/procfs v0.7.0 // indirect
+	github.com/prometheus/common v0.30.0 // indirect
+	github.com/prometheus/procfs v0.7.1 // indirect
 	github.com/webx-top/captcha v0.0.1 // indirect
-	github.com/webx-top/com v0.2.5 // indirect
-	github.com/webx-top/echo v2.16.1+incompatible
+	github.com/webx-top/com v0.2.7 // indirect
+	github.com/webx-top/echo v2.18.3+incompatible
 	github.com/webx-top/tagfast v0.0.0-20161020041435-9a2065ce3dd2 // indirect
 	github.com/webx-top/validation v0.0.1 // indirect
-	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
+	golang.org/x/net v0.0.0-20210726213435-c6fcb2dbf985 // indirect
 	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 )
