@@ -27,7 +27,7 @@ const (
 // DefaultConfig has the default instrumentation config
 var DefaultConfig = Config{
 	Skipper: func(c echo.Context) bool {
-		return c.Request().URL().Path() == `/metrics`
+		return c.Request().URL().Path() == c.Echo().Prefix()+`/metrics`
 	},
 	Namespace: "echo",
 	Subsystem: "http",
