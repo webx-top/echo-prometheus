@@ -17,6 +17,7 @@ type Config struct {
 	Subsystem           string
 	NormalizeHTTPStatus bool
 	OnlyRoutePath       bool
+	StatisticalSize     bool
 }
 
 const (
@@ -97,23 +98,26 @@ func MetricsMiddlewareWithConfig(config Config) echo.MiddlewareFuncd {
 	prometheus.DefaultRegisterer.Unregister(httpRequests)
 	prometheus.DefaultRegisterer.MustRegister(httpRequests)
 
-	httpReqSize := prometheus.NewSummary(prometheus.SummaryOpts{
-		Namespace: config.Namespace,
-		Subsystem: config.Subsystem,
-		Name:      httpRequestSize,
-		Help:      "Number of bytes in the HTTP request",
-	})
-	prometheus.DefaultRegisterer.Unregister(httpReqSize)
-	prometheus.DefaultRegisterer.MustRegister(httpReqSize)
+	var httpReqSize, httpRespSize prometheus.Summary
+	if config.StatisticalSize {
+		httpReqSize = prometheus.NewSummary(prometheus.SummaryOpts{
+			Namespace: config.Namespace,
+			Subsystem: config.Subsystem,
+			Name:      httpRequestSize,
+			Help:      "Number of bytes in the HTTP request",
+		})
+		prometheus.DefaultRegisterer.Unregister(httpReqSize)
+		prometheus.DefaultRegisterer.MustRegister(httpReqSize)
 
-	httpRespSize := prometheus.NewSummary(prometheus.SummaryOpts{
-		Namespace: config.Namespace,
-		Subsystem: config.Subsystem,
-		Name:      httpResponseSize,
-		Help:      "Number of bytes in the HTTP response",
-	})
-	prometheus.DefaultRegisterer.Unregister(httpRespSize)
-	prometheus.DefaultRegisterer.MustRegister(httpRespSize)
+		httpRespSize = prometheus.NewSummary(prometheus.SummaryOpts{
+			Namespace: config.Namespace,
+			Subsystem: config.Subsystem,
+			Name:      httpResponseSize,
+			Help:      "Number of bytes in the HTTP response",
+		})
+		prometheus.DefaultRegisterer.Unregister(httpRespSize)
+		prometheus.DefaultRegisterer.MustRegister(httpRespSize)
+	}
 
 	httpDuration := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: config.Namespace,
