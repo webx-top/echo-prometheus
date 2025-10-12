@@ -6,6 +6,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webx-top/echo"
+	"github.com/webx-top/echo/engine"
 )
 
 // Config responsible to configure middleware
@@ -21,6 +22,8 @@ type Config struct {
 const (
 	httpRequestsCount    = "requests_total"
 	httpRequestsDuration = "request_duration_seconds"
+	httpRequestSize      = "request_size_bytes"
+	httpResponseSize     = "response_size_bytes"
 	notFoundPath         = "/not-found"
 )
 
@@ -94,6 +97,24 @@ func MetricsMiddlewareWithConfig(config Config) echo.MiddlewareFuncd {
 	prometheus.DefaultRegisterer.Unregister(httpRequests)
 	prometheus.DefaultRegisterer.MustRegister(httpRequests)
 
+	httpReqSize := prometheus.NewSummary(prometheus.SummaryOpts{
+		Namespace: config.Namespace,
+		Subsystem: config.Subsystem,
+		Name:      httpRequestSize,
+		Help:      "Number of bytes in the HTTP request",
+	})
+	prometheus.DefaultRegisterer.Unregister(httpReqSize)
+	prometheus.DefaultRegisterer.MustRegister(httpReqSize)
+
+	httpRespSize := prometheus.NewSummary(prometheus.SummaryOpts{
+		Namespace: config.Namespace,
+		Subsystem: config.Subsystem,
+		Name:      httpResponseSize,
+		Help:      "Number of bytes in the HTTP response",
+	})
+	prometheus.DefaultRegisterer.Unregister(httpRespSize)
+	prometheus.DefaultRegisterer.MustRegister(httpRespSize)
+
 	httpDuration := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: config.Namespace,
 		Subsystem: config.Subsystem,
@@ -129,26 +150,60 @@ func MetricsMiddlewareWithConfig(config Config) echo.MiddlewareFuncd {
 					path = req.URL().Path()
 				}
 			}
+
 			//c.Logger().Debug(path)
 
-			timer := prometheus.NewTimer(httpDuration.WithLabelValues(req.Method(), path))
+			if httpReqSize != nil {
+				httpReqSize.Observe(float64(computeApproximateRequestSize(req)))
+			}
+
+			var timer *prometheus.Timer
+			if httpDuration != nil {
+				timer = prometheus.NewTimer(httpDuration.WithLabelValues(req.Method(), path))
+			}
+
 			err := next.Handle(c)
-			timer.ObserveDuration()
+
+			if timer != nil {
+				timer.ObserveDuration()
+			}
+			if httpRespSize != nil {
+				httpRespSize.Observe(float64(c.Response().Size()))
+			}
 
 			if err != nil {
 				c.Error(err)
 			}
 
-			var status string
-			if config.NormalizeHTTPStatus {
-				status = normalizeHTTPStatus(c.Response().Status())
-			} else {
-				status = strconv.Itoa(c.Response().Status())
+			if httpRequests != nil {
+				var status string
+				if config.NormalizeHTTPStatus {
+					status = normalizeHTTPStatus(c.Response().Status())
+				} else {
+					status = strconv.Itoa(c.Response().Status())
+				}
+
+				httpRequests.WithLabelValues(status, req.Method(), path).Inc()
 			}
-
-			httpRequests.WithLabelValues(status, req.Method(), path).Inc()
-
 			return err
 		}
 	}
+}
+
+func computeApproximateRequestSize(r engine.Request) int {
+	s := len(r.URL().String()) + len(r.Method()) + len(r.Proto())
+	for name, values := range r.Header().Std() {
+		s += len(name)
+		for _, value := range values {
+			s += len(value)
+		}
+	}
+	s += len(r.Host())
+
+	// N.B. r.Form and r.MultipartForm are assumed to be included in r.URL.
+
+	if r.Size() != -1 {
+		s += int(r.Size())
+	}
+	return s
 }
